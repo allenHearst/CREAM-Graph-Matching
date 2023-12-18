@@ -67,7 +67,6 @@ def plot_gmm(epoch, gmm, X, save_path=''):
     # Plot data histogram
     ax.hist(X, bins=100, density=True, histtype='stepfilled', color='green', alpha=0.3,
             label='Clean Samples')
-    # ax.hist(X[clean_index == 0], bins=100, density=True, histtype='stepfilled', color='red', alpha=0.3, label='Noisy Samples')
 
     font1 = {'family': 'DejaVu Sans',
              'weight': 'normal',
@@ -82,7 +81,6 @@ def plot_gmm(epoch, gmm, X, save_path=''):
         ax.plot(x, pdf_individual[:, 0], '--', label='Component A', color='green')
         ax.plot(x, pdf_individual[:, 1], '--', label='Component B', color='red')
 
-    # ax.set_xlabel('Per-sample loss, epoch {}'.format(epoch), font1)
     ax.set_xlabel('Per-sample loss', font1)
     ax.set_ylabel('Density', font1)
     x_ticks = np.array([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
@@ -185,12 +183,12 @@ def train_eval_model(model_A, model_B,
             
             torch.manual_seed(cfg.RANDOM_SEED + epoch + 1) # to ensure the same training rank
             for inputs in dataloader['train']:
-                if iter_num >= cfg.TRAIN.EPOCH_ITERS: # TODO del -300
+                if iter_num >= cfg.TRAIN.EPOCH_ITERS: 
                     break
                 iter_num = iter_num + 1
                 inputs = data_to_cuda(inputs)
                 
-                if 'common' in cfg.MODEL_NAME: # COMMON use the iter number to control the warmup temperature
+                if 'common' in cfg.MODEL_NAME: # COMMON 
                     outputs_A = model_A(inputs, training=True, mode="eval_loss")
                     outputs_B = model_B(inputs, training=True, mode="eval_loss")
                 else:
@@ -203,9 +201,7 @@ def train_eval_model(model_A, model_B,
 
                     loss_A = loss_A.cpu().numpy()
                     loss_B = loss_B.cpu().numpy()
-
-                    # print(loss_A.shape)
-                    # print(loss_B.shape)
+                    
                     count_A = count_A + loss_A.shape[0]
                     max_nodes_A = max(max_nodes_A, loss_A.shape[0])
                     
@@ -215,8 +211,6 @@ def train_eval_model(model_A, model_B,
                     losses_A.append(loss_A)
                     losses_B.append(loss_B)
 
-                    # print(loss_A)
-                    # print(loss_B)
                 else:
                     raise NotImplementedError
                 
@@ -245,18 +239,11 @@ def train_eval_model(model_A, model_B,
                     mask_B[i][j] = True
 
             print("convert loss into 2D matrix in {:.3f}s".format(time.time()-end_time))
-
-            # print(tmp_A[0])
-            # print(tmp_B[9])
             
             losses_A = tmp_A
             losses_B = tmp_B
 
             assert (mask_A == mask_B).all()
-            # print(losses_A.shape)
-            # print(losses_B.shape)
-            # print(losses_A[mask_A].shape)
-            # print(losses_B[mask_B].shape)
 
             loss_A_flaten = losses_A.reshape(-1, 1)
             loss_B_flaten = losses_B.reshape(-1, 1)
@@ -308,16 +295,6 @@ def train_eval_model(model_A, model_B,
             # clean ratio 
             ratio = np.sum(clean) / (np.sum(clean)+np.sum(vague)+np.sum(noisy))
 
-            # convert 1D mask to 2D mask for training ? or not ?
-
-            # return
-
-        #     print(prob_A)
-        #     print(prob_B)
-
-        # print(prob_A)
-        # print(prob_B)
-
         model_A.train()  # Set model to training mode
         model_B.train()  # Set model to training mode
 
@@ -352,11 +329,6 @@ def train_eval_model(model_A, model_B,
                 predict_A = model_A(inputs, training=True, mode="predict")
                 predict_B = model_B(inputs, training=True, mode="predict")
 
-                # print(prob_A)
-                # print(prob_B)
-
-                # print(len_A)
-                # print(len_B)
                 len_A = predict_A.size(1)
                 len_B = predict_B.size(1)
 
@@ -365,38 +337,28 @@ def train_eval_model(model_A, model_B,
                 target_A = data_to_cuda(torch.zeros(len_A))
                 target_B = data_to_cuda(torch.zeros(len_B))
 
-                # print("prob_A", prob_A[begin_offset:begin_offset+len_A])
-                # print("prob_B", prob_B[begin_offset:begin_offset+len_B])
-
-                # print((prob_B[begin_offset:begin_offset+len_B]).size())
-                # print((torch.mul(prob_B[begin_offset:begin_offset+len_B], 1)).size())
-                # print(((1 - prob_B[begin_offset:begin_offset+len_B])).size())
-                # print(torch.mul((1 - prob_B[begin_offset:begin_offset+len_B]), predict_A).size())
-
                 predict_A = predict_A.squeeze(0)
                 predict_B = predict_B.squeeze(0)
                 
                 targets_c_A = torch.mul(prob_B[begin_offset:begin_offset+len_B], 1) + \
                       torch.mul((1 - prob_B[begin_offset:begin_offset+len_B]), predict_A)
-                # print(targets_c_A.size())
-                # targets_c_A = targets_c_A.squeeze(0)
-                # print(targets_c_A.size())
+                
                 targets_c_B = torch.mul(prob_A[begin_offset:begin_offset+len_A], 1) + \
                     torch.mul((1 - prob_A[begin_offset:begin_offset+len_A]), predict_B)
-                # targets_c_B = targets_c_B.squeeze(0)
+                
 
                 # vague data
                 targets_h_A = torch.mul((prob_A[begin_offset:begin_offset+len_A] + \
                                          prob_B[begin_offset:begin_offset+len_B]) / 2, 1) + \
                       torch.mul((1 - (prob_A[begin_offset:begin_offset+len_A] + \
                                       prob_B[begin_offset:begin_offset+len_B]) / 2), predict_A)
-                # targets_h_A = targets_h_A.squeeze(0)
+                
                 
                 targets_h_B = torch.mul((prob_A[begin_offset:begin_offset+len_A] + \
                                          prob_B[begin_offset:begin_offset+len_B]) / 2, 1) + \
                       torch.mul((1 - (prob_A[begin_offset:begin_offset+len_A] + \
                                       prob_B[begin_offset:begin_offset+len_B]) / 2), predict_B)
-                # targets_h_B = targets_h_B.squeeze(0)
+                
 
                 # noisy data
                 targets_u = (predict_A + predict_B) / 2
@@ -412,15 +374,6 @@ def train_eval_model(model_A, model_B,
                 mask_clean = clean[begin_offset:begin_offset+len_A]
                 mask_vague = vague[begin_offset:begin_offset+len_A]
                 mask_noisy = noisy[begin_offset:begin_offset+len_A]
-                # print(mask_clean)
-                # print(mask_vague)
-                # print(mask_noisy)
-
-                # print(target_A[mask_clean].size())
-                # print(targets_c_A.size())
-
-                # print(target_A[mask_clean])
-                # print(targets_c_A[mask_clean])
 
                 target_A[mask_clean] = targets_c_A[mask_clean]
                 target_A[mask_vague] = targets_h_A[mask_vague]
@@ -433,26 +386,12 @@ def train_eval_model(model_A, model_B,
                 
                 begin_offset = begin_offset+len_A
 
-                # print(target_A)
-                # print(target_B)
-                # if ratio > 0.85:
-                #     filter_c_A = 0
-                #     filter_h_A = 0
-                #     filter_c_B = 0
-                #     filter_h_B = 0
-                # else:
-                #     filter_c_A = max(10-epoch, filter_A)
-                #     filter_h_A = filter_A
-
-                #     filter_c_B = max(10-epoch, filter_B)
-                #     filter_h_B = filter_B
 
             with torch.set_grad_enabled(True):
                 
                 # forward A
-                if 'common' in cfg.MODEL_NAME: # COMMON use the iter number to control the warmup temperature
+                if 'common' in cfg.MODEL_NAME: # COMMON 
                     outputs_A = model_A(inputs, training=True, iter_num=iter_num, epoch=epoch, labels=target_A, mode="train", filter=filter_A)
-                    # outputs_B = model_B(inputs, training=True, iter_num=iter_num, epoch=epoch, labels=target_B, mode="train", filter=filter_B)
                 else:
                     raise NotImplementedError
                 if cfg.PROBLEM.TYPE == '2GM':
@@ -460,20 +399,14 @@ def train_eval_model(model_A, model_B,
                     assert 'perm_mat' in outputs_A
                     assert 'gt_perm_mat' in outputs_A
 
-                    # assert 'ds_mat' in outputs_B
-                    # assert 'perm_mat' in outputs_B
-                    # assert 'gt_perm_mat' in outputs_B
-
                     # compute loss
                     if cfg.TRAIN.LOSS_FUNC == 'custom':
                         loss_A = outputs_A['loss']
-                        # loss_B = outputs_B['loss']
                     else:
                         raise NotImplementedError
 
                     # compute accuracy
                     acc_A = matching_accuracy(outputs_A['perm_mat'], outputs_A['gt_perm_mat'], outputs_A['ns'], idx=0)
-                    # acc_B = matching_accuracy(outputs_B['perm_mat'], outputs_B['gt_perm_mat'], outputs_B['ns'], idx=0)
 
                 # backward + optimize
                 if cfg.FP16 and False:
@@ -486,23 +419,17 @@ def train_eval_model(model_A, model_B,
                     
                     if iter_num % cfg.STATISTIC_STEP == 0:
                         print("epoch {} iter {}/{} Net A has {} samples predicted. Net A loss is {}".format(epoch, iter_num, iter_num_per_epoch, len_A, loss.item()))
-                    # print("epoch {} iter {}/{} Net B has {} samples predicted. Net B loss is {}".format(epoch, iter_num, iter_num_per_epoch, len_B, loss_B.item()))
                 
                 optimizer_A.step()
-                # optimizer_B.step()
 
             with torch.set_grad_enabled(True):
 
                 # forward B
-                if 'common' in cfg.MODEL_NAME: # COMMON use the iter number to control the warmup temperature
-                    # outputs_A = model_A(inputs, training=True, iter_num=iter_num, epoch=epoch, labels=target_A, mode="train", filter=filter_A)
+                if 'common' in cfg.MODEL_NAME: # COMMON 
                     outputs_B = model_B(inputs, training=True, iter_num=iter_num, epoch=epoch, labels=target_B, mode="train", filter=filter_B)
                 else:
                     raise NotImplementedError
                 if cfg.PROBLEM.TYPE == '2GM':
-                    # assert 'ds_mat' in outputs_A
-                    # assert 'perm_mat' in outputs_A
-                    # assert 'gt_perm_mat' in outputs_A
 
                     assert 'ds_mat' in outputs_B
                     assert 'perm_mat' in outputs_B
@@ -510,13 +437,11 @@ def train_eval_model(model_A, model_B,
 
                     # compute loss
                     if cfg.TRAIN.LOSS_FUNC == 'custom':
-                        # loss_A = outputs_A['loss']
                         loss_B = outputs_B['loss']
                     else:
                         raise NotImplementedError
 
                     # compute accuracy
-                    # acc_A = matching_accuracy(outputs_A['perm_mat'], outputs_A['gt_perm_mat'], outputs_A['ns'], idx=0)
                     acc_B = matching_accuracy(outputs_B['perm_mat'], outputs_B['gt_perm_mat'], outputs_B['ns'], idx=0)
 
                 # backward + optimize
@@ -529,31 +454,21 @@ def train_eval_model(model_A, model_B,
                     loss.backward()
                     
                     if iter_num % cfg.STATISTIC_STEP == 0:
-                    # print("epoch {} iter {}/{} Net A has {} samples predicted. Net A loss is {}".format(epoch, iter_num, iter_num_per_epoch, len_A, loss_A.item()))
                         print("epoch {} iter {}/{} Net B has {} samples predicted. Net B loss is {}".format(epoch, iter_num, iter_num_per_epoch, len_B, loss.item()))
                 
-                # optimizer_A.step()
                 optimizer_B.step()
 
                 batch_num = inputs['batch_size']
 
-                # continue
-
                 # tfboard writer
                 loss_dict = dict()
                 loss_dict['loss'] = loss_A.item() + loss_B.item()
-                # tfboard_writer.add_scalars('loss', loss_dict, epoch * cfg.TRAIN.EPOCH_ITERS + iter_num)
 
                 accdict_A = dict()
                 accdict_A['matching accuracy'] = torch.mean(acc_A)
 
                 accdict_B = dict()
                 accdict_B['matching accuracy'] = torch.mean(acc_B)
-                # tfboard_writer.add_scalars(
-                #     'training accuracy',
-                #     accdict,
-                #     epoch * cfg.TRAIN.EPOCH_ITERS + iter_num
-                # )
 
                 # statistics
                 running_loss += (loss_A.item() + loss_B.item()) * batch_num
@@ -563,24 +478,11 @@ def train_eval_model(model_A, model_B,
                     running_speed = cfg.STATISTIC_STEP * batch_num / (time.time() - running_since)
                     print('Epoch {:<4} Iteration {:<4} {:>4.2f}sample/s Loss={:<8.4f} Ks_Loss={:<8.4f} Ks_Error={:<8.4f}'
                           .format(epoch, iter_num, running_speed, running_loss / cfg.STATISTIC_STEP / batch_num, running_ks_loss / cfg.STATISTIC_STEP / batch_num, running_ks_error / cfg.STATISTIC_STEP / batch_num))
-                    # tfboard_writer.add_scalars(
-                    #     'speed',
-                    #     {'speed': running_speed},
-                    #     epoch * cfg.TRAIN.EPOCH_ITERS + iter_num
-                    # )
-
-                    # tfboard_writer.add_scalars(
-                    #     'learning rate',
-                    #     {'lr_{}'.format(i): x['lr'] for i, x in enumerate(optimizer_A.param_groups)},
-                    #     epoch * cfg.TRAIN.EPOCH_ITERS + iter_num
-                    # )
 
                     running_loss = 0.0
                     running_ks_loss = 0.0
                     running_ks_error = 0.0
                     running_since = time.time()
-
-        # return
 
         epoch_loss = epoch_loss / cfg.TRAIN.EPOCH_ITERS / batch_num
 
@@ -608,12 +510,6 @@ def train_eval_model(model_A, model_B,
 
         acc_dict_B = {"{}".format(cls): single_acc for cls, single_acc in zip(dataloader['test'].dataset.classes, accs_B)}
         acc_dict_B['average'] = torch.mean(accs_B)
-        # tfboard_writer.add_scalars(
-        #     'Eval acc',
-        #     acc_dict,
-        #     (epoch + 1) * cfg.TRAIN.EPOCH_ITERS
-        # )
-        # wb.save(wb.__save_path)
 
         scheduler_A.step()
         scheduler_B.step()
@@ -731,9 +627,6 @@ if __name__ == '__main__':
         Path(cfg.OUTPUT_PATH).mkdir(parents=True)
 
     now_time = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-    # tfboardwriter = SummaryWriter(logdir=str(Path(cfg.OUTPUT_PATH) / 'tensorboard' / 'training_{}'.format(now_time)))
-    # wb = xlwt.Workbook()
-    # wb.__save_path = str(Path(cfg.OUTPUT_PATH) / ('train_eval_result_' + now_time + '.xls'))
 
     with DupStdoutFileManager(str(Path(cfg.OUTPUT_PATH) / ('train_log_' + now_time + '.log'))) as _:
         print_easydict(cfg)
@@ -748,4 +641,3 @@ if __name__ == '__main__':
                                  start_epoch=cfg.TRAIN.START_EPOCH,
                                  xls_wb=None)
 
-    # wb.save(wb.__save_path)
