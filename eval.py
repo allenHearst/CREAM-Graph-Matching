@@ -381,9 +381,6 @@ def eval_model_ensemble(model_A, model_B, classes, bm, last_epoch=True, verbose=
                 unary_affs_list_A, num_graphs_A, outputs_A = model_A(inputs)
                 unary_affs_list_B, num_graphs_B, outputs_B = model_B(inputs)
 
-                # print(len(unary_affs_list_A[0]))
-                # print(len(unary_affs_list_B[0]))
-
                 assert len(unary_affs_list_A[0]) == len(unary_affs_list_B[0])
 
 
@@ -392,14 +389,7 @@ def eval_model_ensemble(model_A, model_B, classes, bm, last_epoch=True, verbose=
                     tmp = (unary_affs_list_A[0][j] + unary_affs_list_B[0][j]) / 2.0
                     unary_affs_list.append(tmp)
 
-                # unary_affs_list = (torch.Tensor(unary_affs_list_A) + torch.Tensor(unary_affs_list_B)) / 2
-                # unary_affs_list = unary_affs_list.cpu().numpy()
-                # unary_affs_list = unary_affs_list.tolist()
-
                 unary_affs_list = [unary_affs_list]
-
-                # print(len(unary_affs_list[0]))
-                # print(len(unary_affs_list))
 
                 n_points_A = outputs_A['ns']
                 n_points_B = outputs_B['ns']
@@ -431,109 +421,7 @@ def eval_model_ensemble(model_A, model_B, classes, bm, last_epoch=True, verbose=
 
                 pred_time_list.append(torch.full((batch_num,), timer.toc() / batch_num))
 
-            # Evaluate matching accuracy
-            # if cfg.PROBLEM.TYPE == '2GM':
-    #             assert 'perm_mat' in outputs_A
-    #             assert 'perm_mat' in outputs_B
-
-    #             for b in range(outputs['perm_mat'].shape[0]):
-    #                 perm_mat = outputs['perm_mat'][b, :outputs['ns'][0][b], :outputs['ns'][1][b]].cpu()
-    #                 perm_mat = perm_mat.numpy()
-    #                 eval_dict = dict()
-    #                 id_pair = inputs['id_list'][0][b], inputs['id_list'][1][b]
-    #                 eval_dict['ids'] = id_pair
-    #                 eval_dict['cls'] = cls
-    #                 eval_dict['perm_mat'] = perm_mat
-    #                 prediction.append(eval_dict)
-    #                 prediction_cls.append(eval_dict)
-
-    #             if 'aff_mat' in outputs:
-    #                 pred_obj_score = objective_score(outputs['perm_mat'], outputs['aff_mat'])
-    #                 gt_obj_score = objective_score(outputs['gt_perm_mat'], outputs['aff_mat'])
-    #                 objs[i] += torch.sum(pred_obj_score / gt_obj_score)
-    #                 obj_total_num += batch_num
-
             
-
-    #         else:
-    #             raise ValueError('Unknown problem type {}'.format(cfg.PROBLEM.TYPE))
-
-    #         # Evaluate clustering accuracy
-
-    #         if iter_num % cfg.STATISTIC_STEP == 0 and verbose:
-    #             running_speed = cfg.STATISTIC_STEP * batch_num / (time.time() - running_since)
-    #             print('Class {:<8} Iteration {:<4} {:>4.2f}sample/s'.format(cls, iter_num, running_speed))
-    #             running_since = time.time()
-
-
-    #     objs[i] = objs[i] / obj_total_num
-    #     pred_time.append(torch.cat(pred_time_list))
-        
-        
-
-    # if cfg.PROBLEM.TYPE == 'MGM3':
-    #     result = bm.eval(prediction, classes[0], verbose=True)
-    #     for cls in classes[0]:
-    #         precision = result[cls]['precision']
-    #         recall = result[cls]['recall']
-    #         f1 = result[cls]['f1']
-    #         coverage = result[cls]['coverage']
-
-    #         recalls.append(recall)
-    #         precisions.append(precision)
-    #         f1s.append(f1)
-    #         coverages.append(coverage)
-    # else:
-    #     result = bm.eval(prediction, classes, verbose=True)
-    #     for cls in classes:
-    #         precision = result[cls]['precision']
-    #         recall = result[cls]['recall']
-    #         f1 = result[cls]['f1']
-    #         coverage = result[cls]['coverage']
-
-    #         recalls.append(recall)
-    #         precisions.append(precision)
-    #         f1s.append(f1)
-    #         coverages.append(coverage)
-
-    # time_elapsed = time.time() - since
-    # print('Evaluation complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
-
-    # model_A.train(mode=was_training)
-    # model_B.train(mode=was_training)
-    
-
-    # xls_row = 1
-
-    # # show result
-    
-    
-    
-
-    # if not torch.any(torch.isnan(objs)):
-    #     print('Normalized objective score')
-    #     if xls_sheet: xls_sheet.write(xls_row, 0, 'norm objscore')
-    #     for idx, (cls, cls_obj) in enumerate(zip(classes, objs)):
-    #         print('{} = {:.4f}'.format(cls, cls_obj))
-    #         if xls_sheet: xls_sheet.write(xls_row, idx+1, cls_obj.item()) #'{:.4f}'.format(cls_obj))
-    #     print('average objscore = {:.4f}'.format(torch.mean(objs)))
-    #     if xls_sheet:
-    #         xls_sheet.write(xls_row, idx+2, torch.mean(objs).item()) #'{:.4f}'.format(torch.mean(objs)))
-    #         xls_row += 1
-
-    
-
-    # print('Predict time')
-    # if xls_sheet: xls_sheet.write(xls_row, 0, 'time')
-    # for idx, (cls, cls_time) in enumerate(zip(classes, pred_time)):
-    #     print('{} = {}'.format(cls, format_metric(cls_time)))
-    #     if xls_sheet: xls_sheet.write(xls_row, idx + 1, torch.mean(cls_time).item()) #'{:.4f}'.format(torch.mean(cls_time)))
-    # print('average time = {}'.format(format_metric(torch.cat(pred_time))))
-    
-
-    # bm.rm_gt_cache(last_epoch=last_epoch)
-
-    # return torch.Tensor(recalls)
             # Evaluate matching accuracy
             if cfg.PROBLEM.TYPE == '2GM':
                 assert 'perm_mat' in outputs
