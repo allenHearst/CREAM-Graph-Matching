@@ -19,7 +19,7 @@ After creating a docker environment and ```git clone``` COMMON, please use the c
 Then you can follow the instructions shown in COMMON repository to start training or testing.
 
 # Citation
-If you found our work useful, please cite this work as follows:
+If you found our work useful, please cite this work as follows, thank you.
 ```
 @
 ```
