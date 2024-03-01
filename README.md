@@ -21,5 +21,10 @@ Then you can follow the instructions shown in COMMON repository to start trainin
 # Citation
 If you found our work useful, please cite this work as follows, thank you.
 ```
-@
+@article{ma2024cream,
+	title={Cross-modal Retrieval with Noisy Correspondence via Consistency Refining and Mining},
+	author={Ma, Xinran and Yang, Mouxing and Li, Yunfan and Hu, Peng and Lv, Jiancheng and Peng, Xi},
+	journal={IEEE transactions on image processing},
+	year={2024}
+}
 ```
