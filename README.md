@@ -1,5 +1,5 @@
 # CREAM-Graph-Matching
-CREAM Graph Matching Repository. See CREAM repository in [[https://github.com/allenHearst/CREAM/](https://github.com/XLearning-SCU/2024-TIP-CREAM/)].
+CREAM Graph Matching Repository. See CREAM repository in [https://github.com/XLearning-SCU/2024-TIP-CREAM/].
 
 # Get Started
 We follow COMMON [https://github.com/XLearning-SCU/2023-ICCV-COMMON/] to build our codes. Please take a look at the instructions shown in the COMMON repository.
